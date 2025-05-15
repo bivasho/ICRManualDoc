@@ -115,8 +115,29 @@
         <label>Email</label>
         <input type="email" name="Email" required>
 
+        <label>Property Manager Details</label>
+        <input name="PropertyManagerDetails">
+
+        <label>Parking</label>
+        <input name="Parking">
+
+        <label>Check-in Details</label>
+        <input name="CheckInDetails">
+
+        <label>Pet Friendly</label>
+        <input name="PetFriendly">
+
+        <label>WIFI</label>
+        <input name="WIFI">
+
+        <label>Furniture</label>
+        <input name="Furniture">
+
         <label>Damage/Fees Notes</label>
         <textarea name="DamageFees" rows="4"></textarea>
+
+        <label>Check-out Instructions</label>
+        <textarea name="CheckOutInstructions" rows="4"></textarea>
 
         <label>House Rules</label>
         <textarea name="HouseRules1" rows="4"></textarea>
@@ -144,11 +165,20 @@
 
     document.getElementById("bookingForm").addEventListener("submit", async function (e) {
       e.preventDefault();
+
       const formData = new FormData(e.target);
+      const params = new URLSearchParams();
+
+      for (const [key, value] of formData.entries()) {
+        params.append(key, value);
+      }
 
       const response = await fetch("https://script.google.com/macros/s/AKfycbwLYHh0gm9njcSu83HlRf9BxOnwHTBNvSMo-Ck0nvJvxAVztiB17rwDXq3J7zl2brp9/exec", {
         method: "POST",
-        body: formData
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded"
+        },
+        body: params.toString()
       });
 
       const result = await response.json();
