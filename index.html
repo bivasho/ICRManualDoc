@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ICR Manual Document Generator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f4;
+      margin: 0;
+      padding: 0;
+    }
+    .auth-screen, .main-screen {
+      max-width: 600px;
+      margin: 80px auto;
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    .hidden { display: none; }
+    h1 {
+      text-align: center;
+      color: #14b8a6;
+    }
+    label, select, input, textarea, button {
+      display: block;
+      width: 100%;
+      margin-top: 15px;
+    }
+    input, select, textarea {
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+    }
+    button {
+      background-color: #14b8a6;
+      color: white;
+      padding: 12px;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #0d8e80;
+    }
+    .logo {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+    .logo img {
+      height: 40px;
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-screen" id="authScreen">
+    <h1>Access Required</h1>
+    <label for="accessCode">Enter Access Code:</label>
+    <input type="password" id="accessCode" placeholder="Enter code" />
+    <button onclick="checkAccess()">Enter</button>
+  </div>
+
+  <div class="main-screen hidden" id="mainScreen">
+    <div class="logo">
+      <h1>ICR Manual Document Generator</h1>
+      <img src="images/icr-logo.png" alt="ICR Logo" />
+    </div>
+
+    <label for="docType">Select Document Type</label>
+    <select id="docType" onchange="toggleForm()">
+      <option value="booking">Booking Confirmation Form</option>
+      <option value="invoice" disabled>Manual Invoice (Coming Soon)</option>
+      <option value="quote" disabled>Manual Quote (Coming Soon)</option>
+    </select>
+
+    <div id="bookingFormContainer">
+      <label for="propertySearch">Search Property</label>
+      <input type="text" id="propertySearch" placeholder="Start typing to search..." />
+
+      <form id="bookingForm">
+        <label>Job Number</label>
+        <input name="JobNumber" required>
+
+        <label>Property Address</label>
+        <input name="PropertyAddress" required>
+
+        <label>Check-in Date</label>
+        <input type="date" name="CheckInDate" required>
+
+        <label>Check-in Time</label>
+        <input name="CheckInTime" required>
+
+        <label>Check-out Date</label>
+        <input type="date" name="CheckOutDate" required>
+
+        <label>Check-out Time</label>
+        <input name="CheckOutTime" required>
+
+        <label>Adults</label>
+        <input type="number" name="Adults" required>
+
+        <label>Children</label>
+        <input type="number" name="Children">
+
+        <label>Infants</label>
+        <input type="number" name="Infants">
+
+        <label>Pets</label>
+        <input name="Pets">
+
+        <label>Email</label>
+        <input type="email" name="Email" required>
+
+        <label>Damage/Fees Notes</label>
+        <textarea name="DamageFees" rows="4"></textarea>
+
+        <label>House Rules</label>
+        <textarea name="HouseRules1" rows="4"></textarea>
+
+        <button type="submit">Generate PDF</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    function checkAccess() {
+      const code = document.getElementById('accessCode').value.trim().toLowerCase();
+      if (code === 'icr') {
+        document.getElementById('authScreen').classList.add('hidden');
+        document.getElementById('mainScreen').classList.remove('hidden');
+      } else {
+        alert('Invalid access code.');
+      }
+    }
+
+    function toggleForm() {
+      const type = document.getElementById('docType').value;
+      document.getElementById('bookingFormContainer').style.display = (type === 'booking') ? 'block' : 'none';
+    }
+
+    document.getElementById("bookingForm").addEventListener("submit", async function (e) {
+      e.preventDefault();
+      const formData = new FormData(e.target);
+
+      const response = await fetch("https://script.google.com/macros/s/AKfycbxw5ryQVa_PagZdtkUz7L5GO-PwnSBnzPphacw6aanBbQnDHlf-pccmdjbGFg8jFdWIYQ/exec", {
+        method: "POST",
+        body: formData
+      });
+
+      const result = await response.json();
+
+      if (result.status === "success") {
+        const link = document.createElement("a");
+        link.href = result.fileUrl;
+        link.download = result.fileName;
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+      } else {
+        alert("Failed to generate PDF: " + result.message);
+      }
+    });
+  </script>
+</body>
+</html>
