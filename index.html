@@ -34,6 +34,9 @@
       border-radius: 6px;
       border: 1px solid #ccc;
     }
+    input[readonly] {
+      background-color: #eee;
+    }
     button {
       background-color: #14b8a6;
       color: white;
@@ -89,16 +92,13 @@
         <input name="PropertyAddress" required>
 
         <label>Check-in Date</label>
-        <input type="date" name="CheckInDate" required>
-
-        <label>Check-in Time</label>
-        <input name="CheckInTime" required>
+        <input type="date" name="CheckInDate" id="checkInDate" required>
 
         <label>Check-out Date</label>
-        <input type="date" name="CheckOutDate" required>
+        <input type="date" name="CheckOutDate" id="checkOutDate" required>
 
-        <label>Check-out Time</label>
-        <input name="CheckOutTime" required>
+        <label>Duration of Stay (Nights)</label>
+        <input name="DurationOfStay" id="duration" readonly>
 
         <label>Adults</label>
         <input type="number" name="Adults" required>
@@ -163,10 +163,30 @@
       document.getElementById('bookingFormContainer').style.display = (type === 'booking') ? 'block' : 'none';
     }
 
+    function calculateDuration() {
+      const checkIn = document.getElementById("checkInDate").value;
+      const checkOut = document.getElementById("checkOutDate").value;
+      const durationField = document.getElementById("duration");
+
+      if (checkIn && checkOut) {
+        const inDate = new Date(checkIn);
+        const outDate = new Date(checkOut);
+        const diffTime = outDate - inDate;
+        const nights = Math.round(diffTime / (1000 * 60 * 60 * 24));
+        durationField.value = nights > 0 ? `${nights} night${nights > 1 ? 's' : ''}` : '';
+      } else {
+        durationField.value = '';
+      }
+    }
+
+    document.getElementById("checkInDate").addEventListener("change", calculateDuration);
+    document.getElementById("checkOutDate").addEventListener("change", calculateDuration);
+
     document.getElementById("bookingForm").addEventListener("submit", async function (e) {
       e.preventDefault();
 
-      const formData = new FormData(e.target);
+      const form = e.target;
+      const formData = new FormData(form);
       const params = new URLSearchParams();
 
       for (const [key, value] of formData.entries()) {
