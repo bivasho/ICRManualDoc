@@ -72,6 +72,19 @@
       z-index: 1000;
       display: none;
     }
+    #suggestions {
+      position: relative;
+    }
+    .suggestion-item {
+      background: white;
+      border: 1px solid #ccc;
+      border-top: none;
+      padding: 8px;
+      cursor: pointer;
+    }
+    .suggestion-item:hover {
+      background-color: #f0f0f0;
+    }
   </style>
 </head>
 <body>
@@ -97,7 +110,10 @@
 
     <div id="bookingFormContainer">
       <label for="propertySearch">Search Property</label>
-      <input type="text" id="propertySearch" placeholder="Start typing to search..." />
+      <div id="suggestions">
+        <input type="text" id="propertySearch" placeholder="Start typing to search..." autocomplete="off" />
+        <div id="suggestionList"></div>
+      </div>
 
       <form id="bookingForm">
         <label>Job Number</label>
@@ -109,8 +125,14 @@
         <label>Check-in Date</label>
         <input type="date" name="CheckInDate" id="checkInDate" required>
 
+        <label>Check-in Time</label>
+        <input name="CheckInTime">
+
         <label>Check-out Date</label>
         <input type="date" name="CheckOutDate" id="checkOutDate" required>
+
+        <label>Check-out Time</label>
+        <input name="CheckOutTime">
 
         <label>Duration of Stay (Nights)</label>
         <input name="DurationOfStay" id="duration" readonly>
@@ -138,12 +160,6 @@
 
         <label>Check-in Details</label>
         <input name="CheckInDetails">
-
-        <label>Check-in Time</label>
-        <input name="CheckInTime">
-
-        <label>Check-out Time</label>
-        <input name="CheckOutTime">
 
         <label>Pet Friendly</label>
         <input name="PetFriendly">
@@ -208,33 +224,52 @@
     let propertiesList = [];
 
     fetch('data/properties.json')
-     .then(res => res.json())
-      .then(data => {
-        propertiesList = data;
-      });
+      .then(res => res.json())
+      .then(data => { propertiesList = data; });
 
     const searchInput = document.getElementById("propertySearch");
+    const suggestionList = document.getElementById("suggestionList");
     const form = document.getElementById("bookingForm");
 
     searchInput.addEventListener("input", function () {
       const inputValue = this.value.trim().toLowerCase();
-      if (!inputValue) return;
+      suggestionList.innerHTML = '';
 
-      const match = propertiesList.find(p => p.PropertyAddress.toLowerCase().includes(inputValue));
-      if (match) {
-        form.elements["PropertyAddress"].value = match.PropertyAddress || "";
-        form.elements["CheckInDetails"].value = match.CheckInDetails || "";
-        form.elements["CheckInTime"].value = match.CheckInTime || "";
-        form.elements["CheckOutTime"].value = match.CheckOutTime || "";
-        form.elements["CheckOutInstructions"].value = match.CheckOutInstructions || "";
-        form.elements["DamageFees"].value = match.DamageFees || "";
-        form.elements["HouseRules1"].value = match.HouseRules1 || "";
-        form.elements["Parking"].value = match.Parking || "";
-        form.elements["PetFriendly"].value = match.PetFriendly || "";
-        form.elements["PropertyManagerDetails"].value = match.PropertyManagerDetails || "";
-        form.elements["WIFI"].value = match.WIFI || "";
+      if (!inputValue) {
+        suggestionList.style.display = 'none';
+        return;
       }
+
+      const matches = propertiesList.filter(p => p.PropertyAddress.toLowerCase().includes(inputValue));
+      matches.forEach(p => {
+        const div = document.createElement("div");
+        div.className = "suggestion-item";
+        div.textContent = p.PropertyAddress;
+        div.onclick = () => {
+          fillForm(p);
+          searchInput.value = p.PropertyAddress;
+          suggestionList.innerHTML = '';
+          suggestionList.style.display = 'none';
+        };
+        suggestionList.appendChild(div);
+      });
+
+      suggestionList.style.display = matches.length ? 'block' : 'none';
     });
+
+    function fillForm(match) {
+      form.elements["PropertyAddress"].value = match.PropertyAddress || "";
+      form.elements["CheckInDetails"].value = match.CheckInDetails || "";
+      form.elements["CheckInTime"].value = match.CheckInTime || "";
+      form.elements["CheckOutTime"].value = match.CheckOutTime || "";
+      form.elements["CheckOutInstructions"].value = match.CheckOutInstructions || "";
+      form.elements["DamageFees"].value = match.DamageFees || "";
+      form.elements["HouseRules1"].value = match.HouseRules1 || "";
+      form.elements["Parking"].value = match.Parking || "";
+      form.elements["PetFriendly"].value = match.PetFriendly || "";
+      form.elements["PropertyManagerDetails"].value = match.PropertyManagerDetails || "";
+      form.elements["WIFI"].value = match.WIFI || "";
+    }
 
     form.addEventListener("submit", async function (e) {
       e.preventDefault();
