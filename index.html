@@ -223,7 +223,7 @@
 
     let propertiesList = [];
 
-    fetch('data/properties (1).json')
+    fetch('data/property list.json')
       .then(res => res.json())
       .then(data => { propertiesList = data; });
 
@@ -264,7 +264,7 @@
       form.elements["CheckOutTime"].value = match.CheckOutTime || "";
       form.elements["CheckOutInstructions"].value = match.CheckOutInstructions || "";
       form.elements["DamageFees"].value = match.DamageFees || "";
-      form.elements["HouseRules1"].value = match.HouseRules1 || "";
+      form.elements["HouseRules"].value = match.HouseRules1 || "";
       form.elements["Parking"].value = match.Parking || "";
       form.elements["PetFriendly"].value = match.PetFriendly || "";
       form.elements["PropertyManagerDetails"].value = match.PropertyManagerDetails || "";
