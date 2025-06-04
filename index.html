@@ -57,6 +57,21 @@
     .logo img {
       height: 40px;
     }
+    #loadingOverlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      color: white;
+      font-size: 24px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+      display: none;
+    }
   </style>
 </head>
 <body>
@@ -124,6 +139,12 @@
         <label>Check-in Details</label>
         <input name="CheckInDetails">
 
+        <label>Check-in Time</label>
+        <input name="CheckInTime">
+
+        <label>Check-out Time</label>
+        <input name="CheckOutTime">
+
         <label>Pet Friendly</label>
         <input name="PetFriendly">
 
@@ -146,6 +167,8 @@
       </form>
     </div>
   </div>
+
+  <div id="loadingOverlay">Generating your PDF...</div>
 
   <script>
     function checkAccess() {
@@ -182,13 +205,43 @@
     document.getElementById("checkInDate").addEventListener("change", calculateDuration);
     document.getElementById("checkOutDate").addEventListener("change", calculateDuration);
 
-    document.getElementById("bookingForm").addEventListener("submit", async function (e) {
-      e.preventDefault();
+    let propertiesList = [];
 
-      const form = e.target;
+    fetch('data/properties.json')
+     .then(res => res.json())
+      .then(data => {
+        propertiesList = data;
+      });
+
+    const searchInput = document.getElementById("propertySearch");
+    const form = document.getElementById("bookingForm");
+
+    searchInput.addEventListener("input", function () {
+      const inputValue = this.value.trim().toLowerCase();
+      if (!inputValue) return;
+
+      const match = propertiesList.find(p => p.PropertyAddress.toLowerCase().includes(inputValue));
+      if (match) {
+        form.elements["PropertyAddress"].value = match.PropertyAddress || "";
+        form.elements["CheckInDetails"].value = match.CheckInDetails || "";
+        form.elements["CheckInTime"].value = match.CheckInTime || "";
+        form.elements["CheckOutTime"].value = match.CheckOutTime || "";
+        form.elements["CheckOutInstructions"].value = match.CheckOutInstructions || "";
+        form.elements["DamageFees"].value = match.DamageFees || "";
+        form.elements["HouseRules1"].value = match.HouseRules1 || "";
+        form.elements["Parking"].value = match.Parking || "";
+        form.elements["PetFriendly"].value = match.PetFriendly || "";
+        form.elements["PropertyManagerDetails"].value = match.PropertyManagerDetails || "";
+        form.elements["WIFI"].value = match.WIFI || "";
+      }
+    });
+
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      document.getElementById("loadingOverlay").style.display = "flex";
+
       const formData = new FormData(form);
       const params = new URLSearchParams();
-
       for (const [key, value] of formData.entries()) {
         params.append(key, value);
       }
@@ -202,6 +255,7 @@
       });
 
       const result = await response.json();
+      document.getElementById("loadingOverlay").style.display = "none";
 
       if (result.status === "success") {
         const link = document.createElement("a");
